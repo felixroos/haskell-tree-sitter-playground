@@ -26,9 +26,11 @@ async function update() {
     const tree = await parse(textarea.value);
     renderGraph(tree, graphContainer);
     console.log("tree", tree);
-    result = run(tree.rootNode, window);
+    result = run(tree.rootNode, window, {
+      "#": (l, r) => l.set(r),
+    });
     if (isPattern(result)) {
-      result = JSON.stringify(result.firstCycleValues)
+      result = JSON.stringify(result.firstCycleValues, null, 2);
     }
     console.log("result", result);
   } catch (err) {

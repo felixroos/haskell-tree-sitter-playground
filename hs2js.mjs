@@ -1,6 +1,18 @@
-function runInfix(infixNode, scope) {
+function runApply(node, scope, ops) {
+  if (node.children.length !== 2)
+    throw new Error("expected 2 children for node type apply");
+  const [fn, arg] = node.children.map((child) => run(child, scope, ops));
+  // only works if fn is curried!
+  return fn(arg);
+}
+
+function runInfix(infixNode, scope, ops) {
   const [a, op, b] = infixNode.children;
-  const [left, right] = [run(a, scope), run(b, scope)];
+  const [left, right] = [run(a, scope, ops), run(b, scope, ops)];
+  const customOp = ops[op.text];
+  if (customOp) {
+    return customOp(left, right);
+  }
   switch (op.text) {
     case "+":
       return left + right;
@@ -10,13 +22,16 @@ function runInfix(infixNode, scope) {
       return left * right;
     case "/":
       return left / right;
+    case "$":
+      const applyNode = { children: [a, b] };
+      return runApply(applyNode, scope, ops);
     default:
       throw new Error("unexpected infix operator " + op.text);
   }
 }
 
-export function run(node, scope) {
-  let runInScope = (node, scp = scope) => run(node, scp);
+export function run(node, scope, ops = {}) {
+  let runInScope = (node, scp = scope) => run(node, scp, ops);
   //console.log("node", node.type, node.text);
   switch (node.type) {
     case "declarations":
@@ -28,7 +43,8 @@ export function run(node, scope) {
     case "integer":
       return Number(node.text);
     case "string":
-      return String(node.text);
+      const str = node.text.slice(1, -1);
+      return String(str);
     case "function":
       const [fvariable, fpatterns, fbody] = node.children;
       function curry(patterns, body, scope) {
@@ -63,13 +79,9 @@ export function run(node, scope) {
     case "variable":
       return scope[node.text];
     case "infix":
-      return runInfix(node, scope);
+      return runInfix(node, scope, ops);
     case "apply":
-      if (node.children.length !== 2)
-        throw new Error("expected 2 children for node type apply");
-      const [fn, arg] = node.children.map((child) => runInScope(child));
-      // only works if fn is curried!
-      return fn(arg);
+      return runApply(node, scope);
     case "parens":
       if (node.children.length !== 3)
         throw new Error("expected 3 children for node type parens");
@@ -85,7 +97,7 @@ export function run(node, scope) {
   }
 }
 
-export async function evaluate(haskellCode, scope = globalThis) {
+export async function evaluate(haskellCode, scope = globalThis, ops) {
   const ast = await parse(haskellCode);
-  return run(ast, scope);
+  return run(ast, scope, ops);
 }
