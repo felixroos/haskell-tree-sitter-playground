@@ -7,7 +7,10 @@ const graphvizLoaded = Graphviz.load();
 function walk(node, branch = [0], parent) {
   let nodes = [];
   let edges = [];
-  const current = { id: branch.join("-"), label: node.type };
+  const current = {
+    id: branch.join("-"),
+    label: node.type.replace("\\", "lambda"), // backslash kills graphviz..
+  };
   nodes.push(current);
   parent && edges.push({ source: parent.id, target: current.id });
   if (node.children.length) {
