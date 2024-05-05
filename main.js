@@ -20,6 +20,33 @@ textarea.addEventListener("input", (e) => {
 });
 update();
 
+function getInfixOperators() {
+  let operators = {
+    set: "#",
+    add: "+",
+    sub: "-",
+    mul: "*",
+    div: "/",
+  };
+  let alignments = {
+    in: (s) => "|" + s,
+    out: (s) => s + "|",
+    mix: (s) => "|" + s + "|",
+  };
+  let ops = {};
+  Object.entries(operators).forEach(([name, o]) => {
+    // operator without alignment
+    ops[o] = (l, r) => reify(l)[name](reify(r));
+    Object.entries(alignments).forEach(([a, getSymbol]) => {
+      // get symbol with alignment
+      let symbol = getSymbol(o);
+      ops[symbol] = (l, r) => reify(l)[name][a](reify(r));
+    });
+  });
+  return ops;
+}
+const ops = getInfixOperators();
+
 async function update() {
   let result, tree;
   try {
@@ -36,9 +63,7 @@ async function update() {
     console.error(err);
   }
   try {
-    result = run(tree.rootNode, window, {
-      "#": (l, r) => l.set(r),
-    });
+    result = run(tree.rootNode, window, ops);
     if (isPattern(result)) {
       result.play();
       result = JSON.stringify(result.firstCycleValues);
