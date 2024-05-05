@@ -1,7 +1,7 @@
 import { run } from "./hs2js.mjs";
 import { renderGraph } from "./graph.mjs";
 import { parse } from "./parser.mjs";
-import { initStrudel, isPattern, reify } from "@strudel/web";
+import { initStrudel, isPattern, reify, id, late } from "@strudel/web";
 initStrudel({
   prebake: () => samples("github:tidalcycles/dirt-samples"),
 });
@@ -67,12 +67,18 @@ async function update() {
     console.error(err);
   }
   try {
+    let patterns = {};
+    window.p = (name, pattern) => {
+      patterns[name] = pattern;
+    };
+    window.d1 = (pat) => window.p(1, pat);
+    window.d2 = (pat) => window.p(2, pat);
+    window.d3 = (pat) => window.p(3, pat);
+    window.rot = late;
     result = run(tree.rootNode, window, ops);
-    if (isPattern(result)) {
-      result.play();
-      result = JSON.stringify(result.firstCycleValues);
+    if (Object.values(patterns).length) {
+      stack(...Object.values(patterns)).play();
     }
-    console.log("result", result);
   } catch (err) {
     console.warn("eval error");
     console.error(err);
