@@ -18,5 +18,10 @@ let parserLoaded = loadParser();
 export async function parse(code) {
   const parser = await parserLoaded;
   // for some reason, the parser doesn't like new lines..
-  return parser.parse(code.replaceAll("\n", " "));
+  return parser.parse(
+    code
+      .replaceAll("\n\n", "~~~~")
+      .replaceAll("\n", "")
+      .replaceAll("~~~~", "\n")
+  );
 }
