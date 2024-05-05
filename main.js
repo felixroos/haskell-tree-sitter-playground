@@ -21,11 +21,21 @@ textarea.addEventListener("input", (e) => {
 update();
 
 async function update() {
-  let result;
+  let result, tree;
   try {
-    const tree = await parse(textarea.value);
+    tree = await parse(textarea.value);
+  } catch (err) {
+    console.warn("parse error");
+    console.error(err);
+  }
+  console.log("parsed tree", tree);
+  try {
     renderGraph(tree, graphContainer);
-    console.log("tree", tree);
+  } catch (err) {
+    console.warn("could not render graph");
+    console.error(err);
+  }
+  try {
     result = run(tree.rootNode, window, {
       "#": (l, r) => l.set(r),
     });
@@ -35,6 +45,7 @@ async function update() {
     }
     console.log("result", result);
   } catch (err) {
+    console.warn("eval error");
     console.error(err);
     result = "ERROR: " + err.message;
   }
