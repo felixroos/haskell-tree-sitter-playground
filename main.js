@@ -1,6 +1,10 @@
 import { run } from "./hs2js.mjs";
 import { renderGraph } from "./graph.mjs";
 import { parse } from "./parser.mjs";
+import { initStrudel, isPattern } from "@strudel/web";
+initStrudel({
+  prebake: () => samples("github:tidalcycles/dirt-samples"),
+});
 
 const graphContainer = document.getElementById("graph");
 
@@ -23,6 +27,9 @@ async function update() {
     renderGraph(tree, graphContainer);
     console.log("tree", tree);
     result = run(tree.rootNode, window);
+    if (isPattern(result)) {
+      result = JSON.stringify(result.firstCycleValues)
+    }
     console.log("result", result);
   } catch (err) {
     console.error(err);
