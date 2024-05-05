@@ -69,6 +69,11 @@ export function run(node, scope, ops = {}) {
       const [fvariable, fpatterns, fbody] = node.children;
       scope[fvariable.text] = curry(fpatterns.children, fbody, scope, ops);
       return scope[fvariable.text];
+    case "list": {
+      return node.children
+        .filter((_, i) => i % 2 === 1) // elements are at odd indices
+        .map((node) => runInScope(node));
+    }
     case "match":
       if (node.children[0].text !== "=" || node.children.length !== 2) {
         throw new Error("match node so far only support simple assignments");
