@@ -25,5 +25,7 @@ dist-ssr
 
 public/tree-sitter-haskell_mine.wasm
 public/tree-sitter-haskell_theirs.wasm
-dist/tree-sitter-haskell_mine.wasm
-dist/tree-sitter-haskell_theirs.wasm
+public/tree-sitter-haskell_old.wasm
+docs/tree-sitter-haskell_mine.wasm
+docs/tree-sitter-haskell_theirs.wasm
+docs/tree-sitter-haskell_old.wasm
