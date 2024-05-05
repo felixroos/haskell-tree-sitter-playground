@@ -27,6 +27,8 @@ function runInfix(infixNode, scope, ops) {
     case "$":
       const applyNode = { children: [a, b] };
       return runApply(applyNode, scope, ops);
+    case ".":
+      return (x) => left(right(x));
     default:
       throw new Error("unexpected infix operator " + op.text);
   }
