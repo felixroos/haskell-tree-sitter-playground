@@ -40,6 +40,66 @@ function walk(node, branch = [0], parent) {
   return { nodes, edges };
 }
 
+function runInfix(infixNode) {
+  const [a, op, b] = infixNode.children;
+  const [left, right] = [run(a), run(b)];
+  switch (op.text) {
+    case "+":
+      return left + right;
+    case "-":
+      return left - right;
+    case "*":
+      return left * right;
+    case "/":
+      return left / right;
+    default:
+      throw new Error("unexpected infix operator " + op.text);
+  }
+}
+
+// just some functions for testing apply
+window.add = (a) => (b) => a + b;
+window.mul = (a) => (b) => a * b;
+
+function run(node) {
+  console.log("node", node.type, node.text);
+  switch (node.type) {
+    case "declarations":
+      let result;
+      node.children.forEach((top_splice) => {
+        result = run(top_splice);
+      });
+      return result;
+    case "integer":
+      return Number(node.text);
+    case "string":
+      return String(node.text);
+    case "variable":
+      console.log("variable", node.text, ":", globalThis[node.text]);
+      return globalThis[node.text];
+    case "infix":
+      return runInfix(node);
+    case "apply":
+      if (node.children.length !== 2)
+        throw new Error("expected 2 children for node type apply");
+      const [fn, arg] = node.children.map(run);
+      // only works if fn is curried!
+      return fn(arg);
+    case "parens":
+      if (node.children.length !== 3)
+        throw new Error("expected 3 children for node type parens");
+      return run(node.children[1]);
+    default:
+      if (node.children.length === 0) {
+        throw new Error("unhandled leaf type " + node.type);
+      }
+      if (node.children.length > 1) {
+        throw new Error("unhandled branch type " + node.type);
+      }
+      return run(node.children[0]);
+  }
+}
+
 async function renderGraph(code, container) {
   const parser = await parserLoaded;
   const tree = parser.parse(code);
@@ -53,6 +113,13 @@ async function renderGraph(code, container) {
   });
   const svg = await graphviz.layout(dot, "svg", "dot");
   container.innerHTML = svg;
+  let result;
+  try {
+    result = run(tree.rootNode);
+  } catch (err) {
+    result = "ERROR: " + err.message;
+  }
+  document.getElementById("result").innerHTML = "Result: " + result;
 }
 
 async function loadParser() {
