@@ -57,10 +57,6 @@ function runInfix(infixNode, scope) {
   }
 }
 
-// just some functions for testing apply
-window.add = (a) => (b) => a + b;
-window.mul = (a) => (b) => a * b;
-
 function run(node, scope) {
   let runInScope = (node, scp = scope) => run(node, scp);
   //console.log("node", node.type, node.text);
