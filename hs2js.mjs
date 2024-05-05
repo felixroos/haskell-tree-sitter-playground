@@ -100,6 +100,11 @@ export function run(node, scope, ops = {}) {
     }
     case "apply":
       return runApply(node, scope, ops);
+    case "left_section": {
+      const [_, a, op] = node.children;
+      const left = runInScope(a);
+      return (right) => runInfix(left, op.text, right, ops);
+    }
     case "right_section": {
       const [_, op, b] = node.children;
       const right = runInScope(b);
