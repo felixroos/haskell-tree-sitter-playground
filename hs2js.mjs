@@ -1,6 +1,8 @@
 function runApply(node, scope, ops) {
   if (node.children.length !== 2)
-    throw new Error("expected 2 children for node type apply");
+    throw new Error(
+      `expected 2 children for node type apply, got ${node.children.length}`
+    );
   const [fn, arg] = node.children.map((child) => run(child, scope, ops));
   // only works if fn is curried!
   return fn(arg);
@@ -30,10 +32,24 @@ function runInfix(infixNode, scope, ops) {
   }
 }
 
+function curry(patterns, body, scope, ops) {
+  const [variable, ...rest] = patterns;
+  return (arg) => {
+    let _scope = { ...scope, [variable.text]: arg };
+    if (patterns.length === 1) {
+      const result = run(body, _scope, ops);
+      return result;
+    }
+    return curry(rest, body, _scope);
+  };
+}
+
 export function run(node, scope, ops = {}) {
   let runInScope = (node, scp = scope) => run(node, scp, ops);
   //console.log("node", node.type, node.text);
   switch (node.type) {
+    case "ERROR":
+      throw new Error(`invalid syntax: "${node.text}"`);
     case "declarations":
       let result;
       node.children.forEach((declaration) => {
@@ -47,19 +63,11 @@ export function run(node, scope, ops = {}) {
     case "string":
       const str = node.text.slice(1, -1);
       return String(str);
+    case "lambda":
+      const [_, lpatterns, __, lbody] = node.children;
+      return curry(lpatterns.children, lbody, scope);
     case "function":
       const [fvariable, fpatterns, fbody] = node.children;
-      function curry(patterns, body, scope) {
-        const [variable, ...rest] = patterns;
-        return (arg) => {
-          let _scope = { ...scope, [variable.text]: arg };
-          if (patterns.length === 1) {
-            const result = runInScope(body, _scope);
-            return result;
-          }
-          return curry(rest, body, _scope);
-        };
-      }
       scope[fvariable.text] = curry(fpatterns.children, fbody, scope);
       return scope[fvariable.text];
     case "match":
