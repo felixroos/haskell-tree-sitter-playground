@@ -40,7 +40,7 @@ function curry(patterns, body, scope, ops) {
       const result = run(body, _scope, ops);
       return result;
     }
-    return curry(rest, body, _scope);
+    return curry(rest, body, _scope, ops);
   };
 }
 
@@ -65,10 +65,10 @@ export function run(node, scope, ops = {}) {
       return String(str);
     case "lambda":
       const [_, lpatterns, __, lbody] = node.children;
-      return curry(lpatterns.children, lbody, scope);
+      return curry(lpatterns.children, lbody, scope, ops);
     case "function":
       const [fvariable, fpatterns, fbody] = node.children;
-      scope[fvariable.text] = curry(fpatterns.children, fbody, scope);
+      scope[fvariable.text] = curry(fpatterns.children, fbody, scope, ops);
       return scope[fvariable.text];
     case "match":
       if (node.children[0].text !== "=" || node.children.length !== 2) {
@@ -91,7 +91,7 @@ export function run(node, scope, ops = {}) {
     case "infix":
       return runInfix(node, scope, ops);
     case "apply":
-      return runApply(node, scope);
+      return runApply(node, scope, ops);
     case "parens":
       if (node.children.length !== 3)
         throw new Error("expected 3 children for node type parens");
