@@ -22,11 +22,12 @@ update();
 
 function getInfixOperators() {
   let operators = {
-    set: "#",
-    add: "+",
-    sub: "-",
-    mul: "*",
-    div: "/",
+    ">": "set",
+    "#": "set",
+    "+": "add",
+    "-": "sub",
+    "*": "mul",
+    "/": "div",
   };
   let alignments = {
     in: (s) => "|" + s,
@@ -34,7 +35,7 @@ function getInfixOperators() {
     mix: (s) => "|" + s + "|",
   };
   let ops = {};
-  Object.entries(operators).forEach(([name, o]) => {
+  Object.entries(operators).forEach(([o, name]) => {
     // operator without alignment
     ops[o] = (l, r) => reify(l)[name](reify(r));
     Object.entries(alignments).forEach(([a, getSymbol]) => {
@@ -43,6 +44,8 @@ function getInfixOperators() {
       ops[symbol] = (l, r) => reify(l)[name][a](reify(r));
     });
   });
+  ops["~>"] = (l, r) => reify(l).late(reify(r));
+  ops["<~"] = (l, r) => reify(l).early(reify(r));
   return ops;
 }
 const ops = getInfixOperators();
