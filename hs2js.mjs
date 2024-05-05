@@ -4,6 +4,9 @@ function runApply(node, scope, ops) {
       `expected 2 children for node type apply, got ${node.children.length}`
     );
   const [fn, arg] = node.children.map((child) => run(child, scope, ops));
+  if (typeof fn !== "function") {
+    throw new Error(`${node.children[0].text} is not a function`);
+  }
   // only works if fn is curried!
   return fn(arg);
 }
@@ -101,9 +104,9 @@ export function run(node, scope, ops = {}) {
     case "apply":
       return runApply(node, scope, ops);
     case "left_section": {
-      const [_, a, op] = node.children;
-      const left = runInScope(a);
-      return (right) => runInfix(left, op.text, right, ops);
+      const [_, b, op] = node.children;
+      const right = runInScope(b);
+      return (left) => runInfix(left, op.text, right, ops);
     }
     case "right_section": {
       const [_, op, b] = node.children;
