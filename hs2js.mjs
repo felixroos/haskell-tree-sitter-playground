@@ -8,14 +8,12 @@ function runApply(node, scope, ops) {
   return fn(arg);
 }
 
-function runInfix(infixNode, scope, ops) {
-  const [a, op, b] = infixNode.children;
-  const [left, right] = [run(a, scope, ops), run(b, scope, ops)];
-  const customOp = ops[op.text];
+function runInfix(left, symbol, right, ops) {
+  const customOp = ops[symbol];
   if (customOp) {
     return customOp(left, right);
   }
-  switch (op.text) {
+  switch (symbol) {
     case "+":
       return left + right;
     case "-":
@@ -25,12 +23,11 @@ function runInfix(infixNode, scope, ops) {
     case "/":
       return left / right;
     case "$":
-      const applyNode = { children: [a, b] };
-      return runApply(applyNode, scope, ops);
+      return left(right);
     case ".":
       return (x) => left(right(x));
     default:
-      throw new Error("unexpected infix operator " + op.text);
+      throw new Error("unexpected infix operator " + symbol);
   }
 }
 
@@ -90,10 +87,19 @@ export function run(node, scope, ops = {}) {
       return value;
     case "variable":
       return scope[node.text];
-    case "infix":
-      return runInfix(node, scope, ops);
+    case "infix": {
+      const [a, op, b] = node.children;
+      const symbol = op.text;
+      const [left, right] = [runInScope(a), runInScope(b)];
+      return runInfix(left, symbol, right, ops);
+    }
     case "apply":
       return runApply(node, scope, ops);
+    case "right_section": {
+      const [_, op, b] = node.children;
+      const right = runInScope(b);
+      return (left) => runInfix(left, op.text, right, ops);
+    }
     case "parens":
       if (node.children.length !== 3)
         throw new Error("expected 3 children for node type parens");
