@@ -39,7 +39,6 @@ export async function renderGraph(tree, container) {
       edges,
     },
   });
-  console.log("dottt", dot);
   dot = dot.split("\n");
   dot.splice(1, 0, 'bgcolor="transparent"');
   dot.splice(1, 0, 'color="white"');
