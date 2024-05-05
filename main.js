@@ -46,6 +46,7 @@ function getInfixOperators() {
   });
   ops["~>"] = (l, r) => reify(l).late(reify(r));
   ops["<~"] = (l, r) => reify(l).early(reify(r));
+  ops["<$>"] = (l, r) => reify(r).fmap(l).outerJoin(); // is this right?
   return ops;
 }
 const ops = getInfixOperators();
