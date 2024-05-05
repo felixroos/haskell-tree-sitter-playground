@@ -42,6 +42,8 @@ export function run(node, scope, ops = {}) {
       return result;
     case "integer":
       return Number(node.text);
+    case "float":
+      return Number(node.text);
     case "string":
       const str = node.text.slice(1, -1);
       return String(str);

@@ -30,7 +30,8 @@ async function update() {
       "#": (l, r) => l.set(r),
     });
     if (isPattern(result)) {
-      result = JSON.stringify(result.firstCycleValues, null, 2);
+      result.play();
+      result = JSON.stringify(result.firstCycleValues);
     }
     console.log("result", result);
   } catch (err) {
